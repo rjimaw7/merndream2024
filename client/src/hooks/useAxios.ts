@@ -18,11 +18,12 @@ interface IAxios<P, B> {
 const CONFIG = {
   isDevelopment: import.meta.env.MODE === "development",
   API_URL: "http://localhost:3000/",
+  API_URL_PROD: import.meta.env.VITE_PROD_BASE_URL,
 };
 
 export const useAxios = () => {
   const instance = axios.create({
-    baseURL: CONFIG.API_URL,
+    baseURL: CONFIG.isDevelopment ? CONFIG.API_URL : CONFIG.API_URL_PROD,
     headers: {
       "Content-Type": "application/json",
     },
