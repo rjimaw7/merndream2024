@@ -12,8 +12,6 @@ interface IAxios<P, B> {
   data?: B;
   headers?: AxiosRequestHeaders;
   responseType?: ResponseType;
-  onUploadProgress?: (progressEvent: any) => void;
-  onTranslateProgress?: (progressEvent: any) => void;
   cancelToken?: CancelToken;
 }
 
@@ -62,8 +60,6 @@ export const useAxios = () => {
       return response;
     },
     (error) => {
-      if (error.response) {
-      }
       if (CONFIG.isDevelopment) console.log(error);
       return Promise.reject(error);
     }

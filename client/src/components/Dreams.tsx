@@ -1,14 +1,14 @@
 import { useMemo } from "react";
-import { useDreamsApi } from "../api/dreams";
 import { useTheme } from "./theme-provider";
 import { Button } from "./ui/button";
+import { useDreamService } from "@/shared/service/dreamService";
 
 const Dreams = () => {
   // ALL HOOKS
-  const { getAllDreams } = useDreamsApi();
+  const { GetAllDreams } = useDreamService();
   const { setTheme } = useTheme();
 
-  const { data: dreamsData } = getAllDreams();
+  const { data: dreamsData } = GetAllDreams();
 
   const dreamsDataMemo = useMemo(() => dreamsData, [dreamsData]);
 
