@@ -3,6 +3,8 @@ import {
   createDreamsHandler,
   getAllDreamsHandler,
   getDreamByIdHandler,
+  deleteDreamHandler,
+  updateDreamHandler,
 } from "../handlers/dreams.mjs";
 import { checkSchema } from "express-validator";
 import { createDreamsValidationSchema } from "../utils/validationSchemas.mjs";
@@ -18,5 +20,8 @@ router.post(
   checkSchema(createDreamsValidationSchema),
   createDreamsHandler
 );
+
+router.delete("/api/dreams/:id", handleInvalidId, deleteDreamHandler);
+router.patch("/api/dreams/:id", handleInvalidId, updateDreamHandler);
 
 export default router;

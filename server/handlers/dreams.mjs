@@ -31,3 +31,28 @@ export const createDreamsHandler = expressAsyncHandler(async (req, res) => {
   const savedDream = await newDream.save();
   res.status(201).send(savedDream);
 });
+
+export const deleteDreamHandler = expressAsyncHandler(async (req, res) => {
+  const {
+    params: { id },
+  } = req;
+
+  const dreams = await Dreams.findById(id);
+
+  await dreams.deleteOne(id);
+
+  res.status(200).json({ success: true });
+});
+
+export const updateDreamHandler = expressAsyncHandler(async (req, res) => {
+  const {
+    params: { id },
+    body,
+  } = req;
+
+  const dreams = await Dreams.findByIdAndUpdate(id, { ...body });
+
+  console.log(dreams);
+
+  res.status(200).json(dreams);
+});
