@@ -1,15 +1,16 @@
-import "./App.css";
-import Users from "./components/Users";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import Dreams from "./components/Dreams";
 
-function App() {
+const App = () => {
+  const queryClient = new QueryClient();
+
   return (
-    <>
-      <h1>Users</h1>
+    <QueryClientProvider client={queryClient}>
       <div className="card">
-        <Users />
+        <Dreams />
       </div>
-    </>
+    </QueryClientProvider>
   );
-}
+};
 
 export default App;
