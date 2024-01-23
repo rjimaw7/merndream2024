@@ -6,11 +6,12 @@ import {
 } from "../handlers/dreams.mjs";
 import { checkSchema } from "express-validator";
 import { createDreamsValidationSchema } from "../utils/validationSchemas.mjs";
+import { handleInvalidId } from "../utils/middlewares.mjs";
 
 const router = Router();
 
 router.get("/api/dreams", getAllDreamsHandler);
-router.get("/api/dreams/:id", getDreamByIdHandler);
+router.get("/api/dreams/:id", handleInvalidId, getDreamByIdHandler);
 
 router.post(
   "/api/dreams",

@@ -1,34 +1,24 @@
 import { validationResult, matchedData } from "express-validator";
 import { Dreams } from "../mongoose/dreams.mjs";
+import expressAsyncHandler from "express-async-handler";
 
-export const getAllDreamsHandler = async (req, res) => {
-  try {
-    const dreams = await Dreams.find();
-    return res.send(dreams);
-  } catch (err) {
-    console.log(err);
-    return res.sendStatus(400);
-  }
-};
+export const getAllDreamsHandler = expressAsyncHandler(async (req, res) => {
+  const dreams = await Dreams.find();
 
-export const getDreamByIdHandler = async (req, res) => {
+  res.status(200).json(dreams);
+});
+
+export const getDreamByIdHandler = expressAsyncHandler(async (req, res) => {
   const {
     params: { id },
   } = req;
 
-  try {
-    const dreams = await Dreams.findById(id);
+  const dreams = await Dreams.findById(id);
 
-    if (!dreams) return res.sendStatus(404);
+  res.status(200).json(dreams);
+});
 
-    return res.send(dreams);
-  } catch (err) {
-    console.log(err);
-    return res.sendStatus(400);
-  }
-};
-
-export const createDreamsHandler = async (req, res) => {
+export const createDreamsHandler = expressAsyncHandler(async (req, res) => {
   const result = validationResult(req);
 
   if (!result.isEmpty()) {
@@ -38,11 +28,6 @@ export const createDreamsHandler = async (req, res) => {
   const passedData = matchedData(req);
   const newDream = new Dreams(passedData);
 
-  try {
-    const savedDream = await newDream.save();
-    return res.status(201).send(savedDream);
-  } catch (err) {
-    console.log(err);
-    return res.sendStatus(400);
-  }
-};
+  const savedDream = await newDream.save();
+  res.status(201).send(savedDream);
+});
