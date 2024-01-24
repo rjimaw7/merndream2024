@@ -1,11 +1,14 @@
-import { IDream } from "@/shared/interfaces/IDream";
+import { IDream, IDreamCreate } from "@/shared/interfaces/IDream";
 import { useDreamsDao } from "../dao/dreamDao";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
 export const useDreamService = () => {
   const {
     fetchAllDreams: fetchAllDreamsDao,
     fetchSingleDream: fetchSingleDreamDao,
+    createDream: createDreamDao,
+    // deleteDream: deleteDreamDao,
+    // updateDream: updateDreamDao,
   } = useDreamsDao();
 
   const GetAllDreams = () => {
@@ -22,8 +25,18 @@ export const useDreamService = () => {
     });
   };
 
+  const CreateDream = useMutation({
+    mutationFn: (values: IDreamCreate) => createDreamDao(values),
+  });
+  const CreateDreamMutation = () => {
+    return {
+      CreateDream,
+    };
+  };
+
   return {
     GetAllDreams,
     GetSingleDream,
+    CreateDreamMutation,
   };
 };

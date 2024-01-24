@@ -1,6 +1,13 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  // CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { IDream } from "@/shared/interfaces/IDream";
+// import { SquarePen, Trash } from "lucide-react";
 
 interface Props {
   dream: IDream;
@@ -15,7 +22,9 @@ const DreamCard = ({ dream }: Props) => {
         <CardTitle className="text-center">{dream.title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <p className={cn(shouldTruncate && "truncate")}>{dream.dream}</p>
+        <p className={cn(shouldTruncate ? "truncate" : "overflow-hidden")}>
+          {dream.dream}
+        </p>
       </CardContent>
       {/* WILL DISPLAY ON ADMIN MODE */}
       {/* <CardFooter className="flex gap-2 justify-end items-center w-full">

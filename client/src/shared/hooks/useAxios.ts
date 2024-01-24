@@ -91,6 +91,13 @@ export const useAxios = () => {
     });
   };
 
+  const PATCH = async <P, B>(args: IAxios<P, B>): Promise<AxiosResponse> => {
+    return instance({
+      ...args,
+      method: "PATCH",
+    });
+  };
+
   const DELETE = async <P, B>(args: IAxios<P, B>): Promise<AxiosResponse> => {
     return instance({
       ...args,
@@ -104,5 +111,6 @@ export const useAxios = () => {
     POST,
     PUT,
     DELETE,
+    PATCH,
   };
 };

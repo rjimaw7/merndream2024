@@ -24,12 +24,15 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Loader2 } from "lucide-react";
 import { Calendar } from "../ui/calendar";
-import { cn } from "@/lib/utils";
+import { cn, getCurrentTimeStamp } from "@/lib/utils";
 import { format } from "date-fns";
 import { Textarea } from "../ui/textarea";
 import { useTheme } from "../theme-provider";
+import { useDreamService } from "@/shared/service/dreamService";
+import { useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 
 const DreamSchema = z.object({
   title: z
@@ -54,8 +57,12 @@ const DreamSchema = z.object({
 type DreamType = z.infer<typeof DreamSchema>;
 
 const DreamForm = () => {
-  const { theme } = useTheme();
+  // ALL STATE
+  const [openModal, setOpenModal] = useState(false);
 
+  // ALL HOOKS
+  const queryClient = useQueryClient();
+  const { theme } = useTheme();
   const form = useForm<DreamType>({
     resolver: zodResolver(DreamSchema),
     defaultValues: {
@@ -64,13 +71,37 @@ const DreamForm = () => {
       dream: "",
     },
   });
+  const { CreateDreamMutation } = useDreamService();
+  const { CreateDream } = CreateDreamMutation();
 
   const onSubmit = (values: DreamType) => {
-    console.log(values);
+    const modifiedValues = {
+      ...values,
+      date: getCurrentTimeStamp(values.date),
+    };
+
+    CreateDream.mutate(modifiedValues, {
+      onSuccess: () => {
+        setOpenModal(false);
+        queryClient.invalidateQueries({ queryKey: ["dreams"] });
+      },
+      onError: (err) => {
+        console.log(err);
+      },
+    });
   };
 
   return (
-    <Dialog onOpenChange={(open) => !open && form.reset()}>
+    <Dialog
+      open={openModal}
+      onOpenChange={(open) => {
+        if (!open) {
+          form.reset();
+        }
+
+        setOpenModal(open);
+      }}
+    >
       <DialogTrigger>
         <Button variant={theme === "dark" ? "default" : "destructive"}>
           Get Started
@@ -162,6 +193,9 @@ const DreamForm = () => {
             </div>
             <DialogFooter className="sm:justify-start">
               <Button type="submit" variant="default">
+                {CreateDream.isPending && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
                 Submit
               </Button>
             </DialogFooter>

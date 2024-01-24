@@ -3,7 +3,7 @@ import { Dreams } from "../mongoose/dreams.mjs";
 import expressAsyncHandler from "express-async-handler";
 
 export const getAllDreamsHandler = expressAsyncHandler(async (req, res) => {
-  const dreams = await Dreams.find();
+  const dreams = await Dreams.find().sort({ date: 1 });
 
   res.status(200).json(dreams);
 });
