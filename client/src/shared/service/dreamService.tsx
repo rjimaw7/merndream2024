@@ -1,4 +1,4 @@
-import { IDream } from "@/interfaces/IDream";
+import { IDream } from "@/shared/interfaces/IDream";
 import { useDreamsDao } from "../dao/dreamDao";
 import { useQuery } from "@tanstack/react-query";
 

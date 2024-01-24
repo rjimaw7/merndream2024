@@ -1,5 +1,5 @@
-import { useAxios } from "@/hooks/useAxios";
-import { IDream } from "@/interfaces/IDream";
+import { useAxios } from "@/shared/hooks/useAxios";
+import { IDream } from "@/shared/interfaces/IDream";
 
 export const useDreamsDao = () => {
   const { GET } = useAxios();

@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import Dreams from "./components/Dreams";
 import { ThemeProvider } from "./components/theme-provider";
+import Home from "./pages/Home";
 
 const App = () => {
   const queryClient = new QueryClient();
@@ -8,9 +8,7 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-        <div className="container border border-black">
-          <Dreams />
-        </div>
+        <Home />
       </ThemeProvider>
     </QueryClientProvider>
   );
