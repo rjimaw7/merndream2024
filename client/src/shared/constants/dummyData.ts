@@ -6,7 +6,7 @@ export const mockData: IDream[] = [
     title: "Dream Adventure",
     date: "2024-01-24",
     dream:
-      "I found myself exploring an enchanted forest filled with glowing butterflies.I found myself exploring an enchanted forest filled with glowing butterflies.I found myself exploring an enchanted forest filled with glowing butterflies.I found myself exploring an enchanted forest filled with glowing butterflies.I found myself exploring an enchanted forest filled with glowing butterflies.I found myself exploring an enchanted forest filled with glowing butterflies.",
+      "I found myself exploring an enchanted forest filled with glowing butterflies.I found myself exploring an enchanted forest filled with glowing butterflies.I found myself exploring an enchanted forest filled with glowing butterflies.I found myself exploring an enchanted forest filled with glowing butterflies.I found myself exploring an enchanted forest filled with glowing butterflies.",
   },
   {
     _id: "2",

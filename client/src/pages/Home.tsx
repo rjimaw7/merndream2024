@@ -3,13 +3,23 @@ import Navbar from "@/components/Home/Navbar";
 import { useDreamService } from "@/shared/service/dreamService";
 import { useMemo } from "react";
 import DreamForm from "@/components/Home/DreamForm";
+import { RootState } from "@/redux/app/store";
+import { useSelector } from "react-redux";
 
 const Home = () => {
   // ALL HOOKS
-  const { GetAllDreams } = useDreamService();
+  const { cardOpen, selectedCardId } = useSelector(
+    (state: RootState) => state.dreams
+  );
+  const { GetAllDreams, GetSingleDream } = useDreamService();
+
   const { data: dreamData } = GetAllDreams();
+  const { data: singleDreamData } = GetSingleDream(selectedCardId, cardOpen);
 
   const dreamDataMemo = useMemo(() => dreamData, [dreamData]);
+  const singleDreamDataMemo = useMemo(() => singleDreamData, [singleDreamData]);
+
+  console.log(cardOpen);
 
   return (
     <div className="mx-auto container">
@@ -24,7 +34,7 @@ const Home = () => {
           Share your dreams, let's unlock their profound meanings together.
         </p>
         <div className="flex justify-center gap-4 items-center">
-          <DreamForm />
+          <DreamForm singleDreamDataMemo={singleDreamDataMemo} />
         </div>
       </div>
 

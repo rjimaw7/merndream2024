@@ -13,7 +13,7 @@ export const useDreamsDao = () => {
   };
 
   const fetchSingleDream = async (id: string) => {
-    const response = await GET<IDream[]>({
+    const response = await GET<IDream>({
       url: `/api/dreams/${id}`,
     });
 

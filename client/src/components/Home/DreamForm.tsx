@@ -1,10 +1,11 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "../ui/button";
 import { z } from "zod";
@@ -32,7 +33,11 @@ import { Textarea } from "../ui/textarea";
 import { useTheme } from "../theme-provider";
 import { useDreamService } from "@/shared/service/dreamService";
 import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { IDream } from "@/shared/interfaces/IDream";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/redux/app/store";
+import { toggleCardOpen } from "@/redux/features/dreams/dreamSlice";
+import { useEffect } from "react";
 
 const DreamSchema = z.object({
   title: z
@@ -56,11 +61,17 @@ const DreamSchema = z.object({
 
 type DreamType = z.infer<typeof DreamSchema>;
 
-const DreamForm = () => {
+interface Props {
+  singleDreamDataMemo?: IDream;
+}
+
+const DreamForm = ({ singleDreamDataMemo }: Props) => {
   // ALL STATE
-  const [openModal, setOpenModal] = useState(false);
+  // const [openModal, setOpenModal] = useState(false);
 
   // ALL HOOKS
+  const dispatch = useDispatch();
+  const { cardOpen } = useSelector((state: RootState) => state.dreams);
   const queryClient = useQueryClient();
   const { theme } = useTheme();
   const form = useForm<DreamType>({
@@ -82,7 +93,7 @@ const DreamForm = () => {
 
     CreateDream.mutate(modifiedValues, {
       onSuccess: () => {
-        setOpenModal(false);
+        // setOpenModal(false);
         queryClient.invalidateQueries({ queryKey: ["dreams"] });
       },
       onError: (err) => {
@@ -91,22 +102,34 @@ const DreamForm = () => {
     });
   };
 
+  useEffect(() => {
+    if (singleDreamDataMemo) {
+      form.setValue("title", singleDreamDataMemo.title);
+      form.setValue("date", new Date(singleDreamDataMemo.date));
+      form.setValue("dream", singleDreamDataMemo.dream);
+    }
+  }, [singleDreamDataMemo]);
+
   return (
     <Dialog
-      open={openModal}
+      open={cardOpen}
       onOpenChange={(open) => {
         if (!open) {
           form.reset();
+          if (singleDreamDataMemo) {
+            queryClient.removeQueries({ queryKey: ["single_dream"] });
+          }
         }
 
-        setOpenModal(open);
+        dispatch(toggleCardOpen(open));
       }}
     >
-      <DialogTrigger>
-        <Button variant={theme === "dark" ? "default" : "destructive"}>
-          Get Started
-        </Button>
-      </DialogTrigger>
+      <Button
+        variant={theme === "dark" ? "default" : "destructive"}
+        onClick={() => dispatch(toggleCardOpen(true))}
+      >
+        Get Started
+      </Button>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Add a Dream</DialogTitle>

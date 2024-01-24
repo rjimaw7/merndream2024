@@ -18,10 +18,11 @@ export const useDreamService = () => {
     });
   };
 
-  const GetSingleDream = (id: string) => {
-    return useQuery<IDream[], Error>({
+  const GetSingleDream = (id: string, cardOpen?: boolean) => {
+    return useQuery<IDream, Error>({
       queryKey: ["single_dream"],
       queryFn: () => fetchSingleDreamDao(id),
+      enabled: cardOpen,
     });
   };
 
