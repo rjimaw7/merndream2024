@@ -1,4 +1,4 @@
-import { matchedData } from "express-validator";
+import { matchedData, validationResult } from "express-validator";
 import { Dreams } from "../mongoose/dreams.mjs";
 import expressAsyncHandler from "express-async-handler";
 
@@ -58,6 +58,7 @@ export const createDreamsHandler = expressAsyncHandler(async (req, res) => {
   }
 
   const passedData = matchedData(req);
+
   const newDream = new Dreams(passedData);
 
   const savedDream = await newDream.save();

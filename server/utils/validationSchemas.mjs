@@ -5,6 +5,7 @@ export const createDreamsValidationSchema = {
         min: 5,
         max: 32,
       },
+      errorMessage: "Title must be 32 characters or less.",
     },
     notEmpty: {
       errorMessage: "Title cannot be empty",

@@ -1,4 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import {
   Dialog,
@@ -49,6 +50,9 @@ const DreamSchema = z.object({
     })
     .min(3, {
       message: "Title must be at least 3 characters.",
+    })
+    .max(32, {
+      message: "Title must be 32 characters or less.",
     }),
   date: z.date({
     required_error: "A date of dream is required.",
@@ -123,8 +127,8 @@ const DreamForm = ({ singleDreamDataMemo }: Props) => {
           // CLOSE MODAL
           dispatch(toggleCardOpen(false));
         },
-        onError: (err) => {
-          console.log(err);
+        onError: (err: any) => {
+          console.log("Create Error", err?.response?.data?.[0]?.msg);
         },
       });
     }

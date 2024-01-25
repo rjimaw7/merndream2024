@@ -25,14 +25,18 @@ const DreamCard = ({ dream }: Props) => {
 
   return (
     <Card
-      className="w-[350px] cursor-pointer hover:scale-105 transform transition-transform"
+      className="w-[350px] p-8 cursor-pointer hover:scale-105 transform transition-transform
+      shadow-xl shadow-red-700/20 dark:shadow-lg dark:shadow-red-500/30
+      "
       onClick={() => {
         dispatch(toggleCardOpen(true));
         dispatch(setSelectedCardId(dream._id));
       }}
     >
       <CardHeader>
-        <CardTitle className="text-center">{dream.title}</CardTitle>
+        <CardTitle className="text-center overflow-hidden text-red-600 font-bold">
+          {dream.title}
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <p className={cn(shouldTruncate ? "truncate" : "overflow-hidden")}>
