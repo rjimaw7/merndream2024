@@ -1,17 +1,10 @@
-import {
-  Card,
-  CardContent,
-  // CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import {
   toggleCardOpen,
   setSelectedCardId,
 } from "@/redux/features/dreams/dreamSlice";
 import { IDream } from "@/shared/interfaces/IDream";
-// import { SquarePen, Trash } from "lucide-react";
 import { useDispatch } from "react-redux";
 
 interface Props {
@@ -19,7 +12,7 @@ interface Props {
 }
 
 const DreamCard = ({ dream }: Props) => {
-  const shouldTruncate = dream.dream.length >= 100;
+  const shouldTruncate = dream?.dream?.length >= 100;
 
   const dispatch = useDispatch();
 

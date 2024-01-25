@@ -25,7 +25,7 @@ export const useDreamService = () => {
         fetchAllDreamsDao(query, pageParam as number, limit),
       initialPageParam: 1,
       getNextPageParam: (lastPage, allPages) => {
-        const nextPage = lastPage.length > 0 ? allPages.length + 1 : null;
+        const nextPage = lastPage?.length > 0 ? allPages?.length + 1 : null;
         return nextPage;
       },
     });
