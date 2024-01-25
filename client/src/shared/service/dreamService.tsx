@@ -1,6 +1,6 @@
 import { IDream, IDreamCreate, IDreamUpdate } from "@/shared/interfaces/IDream";
 import { useDreamsDao } from "../dao/dreamDao";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useInfiniteQuery } from "@tanstack/react-query";
 
 export const useDreamService = () => {
   const {
@@ -11,10 +11,23 @@ export const useDreamService = () => {
     updateDream: updateDreamDao,
   } = useDreamsDao();
 
-  const GetAllDreams = () => {
-    return useQuery<IDream[], Error>({
-      queryKey: ["dreams"],
-      queryFn: () => fetchAllDreamsDao(),
+  // const GetAllDreams = (query?: string, page?: number, limit?: number) => {
+  //   return useQuery<IDream[], Error>({
+  //     queryKey: ["dreams", query, page, limit],
+  //     queryFn: () => fetchAllDreamsDao(query),
+  //   });
+  // };
+
+  const GetAllDreams = (query?: string, page?: number, limit?: number) => {
+    return useInfiniteQuery<IDream[], Error>({
+      queryKey: ["dreams", query, page, limit],
+      queryFn: ({ pageParam = page }) =>
+        fetchAllDreamsDao(query, pageParam as number, limit),
+      initialPageParam: 1,
+      getNextPageParam: (lastPage, allPages) => {
+        const nextPage = lastPage.length > 0 ? allPages.length + 1 : null;
+        return nextPage;
+      },
     });
   };
 

@@ -1,24 +1,52 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+
 import DreamCard from "@/components/Home/DreamCard";
 import Navbar from "@/components/Home/Navbar";
 import { useDreamService } from "@/shared/service/dreamService";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import DreamForm from "@/components/Home/DreamForm";
 import { RootState } from "@/redux/app/store";
 import { useSelector } from "react-redux";
+import { useDebounce } from "@uidotdev/usehooks";
+import { useInView } from "react-intersection-observer";
 
 const Home = () => {
   // ALL HOOKS
-  const { selectedCardId } = useSelector((state: RootState) => state.dreams);
+  const { selectedCardId, searchQuery } = useSelector(
+    (state: RootState) => state.dreams
+  );
   const { GetAllDreams, GetSingleDream } = useDreamService();
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
-  const { data: dreamData } = GetAllDreams();
+  const { ref, inView } = useInView({
+    threshold: 0,
+  });
+
+  const {
+    data: dreamData,
+    fetchNextPage,
+    hasNextPage,
+  } = GetAllDreams(debouncedSearchQuery, 1, 10);
   const { data: singleDreamData } = GetSingleDream(
     selectedCardId,
     Boolean(selectedCardId)
   );
 
-  const dreamDataMemo = useMemo(() => dreamData, [dreamData]);
+  const dreamDataMemo = useMemo(() => {
+    if (dreamData) {
+      return dreamData.pages.flatMap((page) => page);
+    }
+    return [];
+  }, [dreamData]);
   const singleDreamDataMemo = useMemo(() => singleDreamData, [singleDreamData]);
+
+  useEffect(() => {
+    if (inView) {
+      if (hasNextPage) {
+        fetchNextPage();
+      }
+    }
+  }, [inView, hasNextPage]);
 
   return (
     <div className="mx-auto container">
@@ -43,6 +71,8 @@ const Home = () => {
           dreamDataMemo.map((dream) => (
             <DreamCard key={dream._id} dream={dream} />
           ))}
+
+        {dreamDataMemo && dreamDataMemo.length >= 10 && <div ref={ref} />}
       </section>
     </div>
   );

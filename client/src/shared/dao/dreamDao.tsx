@@ -4,11 +4,32 @@ import { IDream, IDreamCreate, IDreamUpdate } from "@/shared/interfaces/IDream";
 export const useDreamsDao = () => {
   const { GET, POST, PATCH, DELETE } = useAxios();
 
-  const fetchAllDreams = async () => {
-    const response = await GET<IDream[]>({
-      url: "/api/dreams",
-    });
+  // const fetchAllDreams = async (query?: string) => {
+  //   const response = await GET<IDream[]>({
+  //     url: query ? `/api/dreams?title=${query}` : "/api/dreams",
+  //   });
 
+  //   return response.data;
+  // };
+
+  const fetchAllDreams = async (
+    query?: string,
+    page?: number,
+    limit?: number
+  ): Promise<IDream[]> => {
+    let url = "/api/dreams";
+
+    // Add query parameter if present
+    if (query) {
+      url += `?title=${query}`;
+    }
+
+    // Add page and limit parameters if provided
+    if (page && limit) {
+      url += `${query ? "&" : "?"}page=${page}&limit=${limit}`;
+    }
+
+    const response = await GET<IDream[]>({ url });
     return response.data;
   };
 

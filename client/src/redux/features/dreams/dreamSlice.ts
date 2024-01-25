@@ -3,13 +3,13 @@ import { createSlice } from "@reduxjs/toolkit";
 interface Props {
   cardOpen: boolean;
   selectedCardId: string;
-  isEditDream: boolean;
+  searchQuery: string;
 }
 
 const initialState: Props = {
   cardOpen: false,
   selectedCardId: "",
-  isEditDream: false,
+  searchQuery: "",
 };
 
 const dreamSlice = createSlice({
@@ -22,12 +22,12 @@ const dreamSlice = createSlice({
     setSelectedCardId: (state, action) => {
       state.selectedCardId = action.payload;
     },
-    setIsEditDream: (state, action) => {
-      state.isEditDream = action.payload;
+    setSearchQuery: (state, action) => {
+      state.searchQuery = action.payload;
     },
   },
 });
 
-export const { toggleCardOpen, setSelectedCardId, setIsEditDream } =
+export const { toggleCardOpen, setSelectedCardId, setSearchQuery } =
   dreamSlice.actions;
 export default dreamSlice.reducer;
