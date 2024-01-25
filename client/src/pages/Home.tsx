@@ -40,6 +40,7 @@ const Home = () => {
   }, [dreamData]);
   const singleDreamDataMemo = useMemo(() => singleDreamData, [singleDreamData]);
 
+  // FOR INFINITE SCROLL
   useEffect(() => {
     if (inView) {
       if (hasNextPage) {

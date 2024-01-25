@@ -19,7 +19,7 @@ const DreamCard = ({ dream }: Props) => {
   return (
     <Card
       className="w-[350px] p-8 cursor-pointer hover:scale-105 transform transition-transform
-      shadow-xl shadow-red-700/20 dark:shadow-lg dark:shadow-red-500/30
+      shadow-xl shadow-red-700/15 dark:shadow-lg dark:shadow-red-500/40
       "
       onClick={() => {
         dispatch(toggleCardOpen(true));
@@ -27,7 +27,7 @@ const DreamCard = ({ dream }: Props) => {
       }}
     >
       <CardHeader>
-        <CardTitle className="text-center overflow-hidden text-red-600 font-bold">
+        <CardTitle className="text-center overflow-hidden text-red-600 font-bold dark:text-white">
           {dream.title}
         </CardTitle>
       </CardHeader>
@@ -36,11 +36,6 @@ const DreamCard = ({ dream }: Props) => {
           {dream.dream}
         </p>
       </CardContent>
-      {/* WILL DISPLAY ON ADMIN MODE */}
-      {/* <CardFooter className="flex gap-2 justify-end items-center w-full">
-        <Trash size={16} />
-        <SquarePen size={16} />
-      </CardFooter> */}
     </Card>
   );
 };
