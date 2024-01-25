@@ -8,18 +8,17 @@ import { useSelector } from "react-redux";
 
 const Home = () => {
   // ALL HOOKS
-  const { cardOpen, selectedCardId } = useSelector(
-    (state: RootState) => state.dreams
-  );
+  const { selectedCardId } = useSelector((state: RootState) => state.dreams);
   const { GetAllDreams, GetSingleDream } = useDreamService();
 
   const { data: dreamData } = GetAllDreams();
-  const { data: singleDreamData } = GetSingleDream(selectedCardId, cardOpen);
+  const { data: singleDreamData } = GetSingleDream(
+    selectedCardId,
+    Boolean(selectedCardId)
+  );
 
   const dreamDataMemo = useMemo(() => dreamData, [dreamData]);
   const singleDreamDataMemo = useMemo(() => singleDreamData, [singleDreamData]);
-
-  console.log(cardOpen);
 
   return (
     <div className="mx-auto container">

@@ -36,7 +36,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { IDream } from "@/shared/interfaces/IDream";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/app/store";
-import { toggleCardOpen } from "@/redux/features/dreams/dreamSlice";
+import {
+  toggleCardOpen,
+  setSelectedCardId,
+} from "@/redux/features/dreams/dreamSlice";
 import { useEffect } from "react";
 
 const DreamSchema = z.object({
@@ -67,7 +70,6 @@ interface Props {
 
 const DreamForm = ({ singleDreamDataMemo }: Props) => {
   // ALL STATE
-  // const [openModal, setOpenModal] = useState(false);
 
   // ALL HOOKS
   const dispatch = useDispatch();
@@ -82,8 +84,11 @@ const DreamForm = ({ singleDreamDataMemo }: Props) => {
       dream: "",
     },
   });
-  const { CreateDreamMutation } = useDreamService();
+  const { CreateDreamMutation, DeleteDreamMutation, UpdateDreamMutation } =
+    useDreamService();
   const { CreateDream } = CreateDreamMutation();
+  const { UpdateDream } = UpdateDreamMutation();
+  const { DeleteDream } = DeleteDreamMutation();
 
   const onSubmit = (values: DreamType) => {
     const modifiedValues = {
@@ -91,10 +96,47 @@ const DreamForm = ({ singleDreamDataMemo }: Props) => {
       date: getCurrentTimeStamp(values.date),
     };
 
-    CreateDream.mutate(modifiedValues, {
+    // IF EDIT MODE EXECUTE THIS
+    if (singleDreamDataMemo) {
+      UpdateDream.mutate(
+        {
+          ...modifiedValues,
+          _id: singleDreamDataMemo._id,
+        },
+        {
+          onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["dreams"] });
+            queryClient.invalidateQueries({ queryKey: ["single_dream"] });
+            // CLOSE MODAL
+            dispatch(toggleCardOpen(false));
+          },
+          onError: (err) => {
+            console.log(err);
+          },
+        }
+      );
+    } else {
+      // IF CREATE MODE
+      CreateDream.mutate(modifiedValues, {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ["dreams"] });
+          // CLOSE MODAL
+          dispatch(toggleCardOpen(false));
+        },
+        onError: (err) => {
+          console.log(err);
+        },
+      });
+    }
+  };
+
+  const onDeleteDream = (id: string) => {
+    DeleteDream.mutate(id, {
       onSuccess: () => {
-        // setOpenModal(false);
         queryClient.invalidateQueries({ queryKey: ["dreams"] });
+        // CLOSE MODAL
+        dispatch(setSelectedCardId(""));
+        dispatch(toggleCardOpen(false));
       },
       onError: (err) => {
         console.log(err);
@@ -118,6 +160,7 @@ const DreamForm = ({ singleDreamDataMemo }: Props) => {
           form.reset();
           if (singleDreamDataMemo) {
             queryClient.removeQueries({ queryKey: ["single_dream"] });
+            dispatch(setSelectedCardId(""));
           }
         }
 
@@ -132,7 +175,9 @@ const DreamForm = ({ singleDreamDataMemo }: Props) => {
       </Button>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add a Dream</DialogTitle>
+          <DialogTitle>
+            {singleDreamDataMemo ? singleDreamDataMemo.title : "Add a Dream"}
+          </DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -215,12 +260,27 @@ const DreamForm = ({ singleDreamDataMemo }: Props) => {
               />
             </div>
             <DialogFooter className="sm:justify-start">
-              <Button type="submit" variant="default">
-                {CreateDream.isPending && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                Submit
-              </Button>
+              {singleDreamDataMemo ? (
+                <>
+                  <Button type="submit" variant="default">
+                    Update
+                  </Button>
+                  <Button
+                    type="submit"
+                    variant="destructive"
+                    onClick={() => onDeleteDream(singleDreamDataMemo._id)}
+                  >
+                    Delete
+                  </Button>
+                </>
+              ) : (
+                <Button type="submit" variant="default">
+                  {CreateDream.isPending && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  Submit
+                </Button>
+              )}
             </DialogFooter>
           </form>
         </Form>

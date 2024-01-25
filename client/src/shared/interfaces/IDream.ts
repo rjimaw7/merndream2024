@@ -10,3 +10,10 @@ export interface IDreamCreate {
   date: string;
   dream: string;
 }
+
+export interface IDreamUpdate {
+  _id: string;
+  title: string;
+  date: string;
+  dream: string;
+}

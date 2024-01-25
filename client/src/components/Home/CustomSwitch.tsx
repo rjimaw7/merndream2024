@@ -8,7 +8,6 @@ const CustomSwitch = () => {
   const [checked, setChecked] = useState(false);
 
   const handleChange = (checked: boolean) => {
-    console.log(checked);
     setTheme(theme === "dark" ? "light" : "dark");
     setChecked(checked);
   };

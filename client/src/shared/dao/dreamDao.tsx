@@ -1,5 +1,5 @@
 import { useAxios } from "@/shared/hooks/useAxios";
-import { IDream, IDreamCreate } from "@/shared/interfaces/IDream";
+import { IDream, IDreamCreate, IDreamUpdate } from "@/shared/interfaces/IDream";
 
 export const useDreamsDao = () => {
   const { GET, POST, PATCH, DELETE } = useAxios();
@@ -21,8 +21,6 @@ export const useDreamsDao = () => {
   };
 
   const createDream = async (values: IDreamCreate) => {
-    console.log("DAO VALUES:", values);
-
     const response = await POST({
       url: "/api/dreams",
       data: {
@@ -33,11 +31,17 @@ export const useDreamsDao = () => {
     return response.data;
   };
 
-  const updateDream = async (values: IDreamCreate) => {
+  const updateDream = async (values: IDreamUpdate) => {
+    const updatedValues = {
+      title: values.title,
+      date: values.date,
+      dream: values.dream,
+    };
+
     const response = await PATCH({
-      url: "/api/dreams",
+      url: `/api/dreams/${values._id}`,
       data: {
-        ...values,
+        ...updatedValues,
       },
     });
 
