@@ -16,6 +16,11 @@ Welcome to the Advent of Dreams, a modern MERN (MongoDB, Express.js, React.js, N
 - Utilized the "react-simple-typewriter" library to enhance user interaction.
 - Emphasized the importance of using ESLint before starting a project.
 
+## Deployment
+
+- **Client Side:** Deployed using [Vercel](https://vercel.com/).
+- **Backend Side:** Deployed using [Render](https://render.com/).
+
 ## Todo
 
 - **Refactor Code:** Enhance code quality and maintainability.
