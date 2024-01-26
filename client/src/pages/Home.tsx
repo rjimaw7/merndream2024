@@ -9,6 +9,8 @@ import { RootState } from "@/redux/app/store";
 import { useSelector } from "react-redux";
 import { useDebounce } from "@uidotdev/usehooks";
 import { useInView } from "react-intersection-observer";
+import React from "react";
+import SkeletonCard from "@/components/Home/SkeletonCard";
 
 const Home = () => {
   // ALL HOOKS
@@ -26,11 +28,10 @@ const Home = () => {
     data: dreamData,
     fetchNextPage,
     hasNextPage,
+    isLoading: dreamDataIsLoading,
   } = GetAllDreams(debouncedSearchQuery, 1, 10);
-  const { data: singleDreamData } = GetSingleDream(
-    selectedCardId,
-    Boolean(selectedCardId)
-  );
+  const { data: singleDreamData, isFetching: singleDreamIsFetching } =
+    GetSingleDream(selectedCardId, Boolean(selectedCardId));
 
   const dreamDataMemo = useMemo(() => {
     if (dreamData) {
@@ -50,32 +51,47 @@ const Home = () => {
   }, [inView, hasNextPage]);
 
   return (
-    <div className="mx-auto container">
+    <main className="container">
       <Navbar />
 
-      {/* HERO */}
-      <div className="mb-10 mt-16 text-center flex flex-col gap-8">
-        <h1 className="text-8xl font-bold tracking-tighter text-center">
+      <section
+        id="hero"
+        className="mb-10 mt-16 text-center flex flex-col gap-8"
+      >
+        {/* <h1 className="text-8xl font-bold tracking-tighter text-center"> */}
+        <h1 className="text-6xl md:text-8xl font-bold tracking-tighter text-center">
           Advent of <span className="text-red-600">Dreams</span>
         </h1>
-        <p className="text-xl text-black font-semibold italic dark:text-white">
+        <p className="text-lg md:text-xl text-black font-semibold italic dark:text-white">
           Share your dreams, let's unlock their profound meanings together.
         </p>
         <div className="flex justify-center gap-4 items-center">
-          <DreamForm singleDreamDataMemo={singleDreamDataMemo} />
+          {singleDreamIsFetching ? (
+            <p>Loading...</p>
+          ) : (
+            <DreamForm singleDreamDataMemo={singleDreamDataMemo} />
+          )}
         </div>
-      </div>
+      </section>
 
-      {/* DREAM CARDS HERE */}
-      <section id="cards" className="mx-20 grid grid-cols-3 gap-8 pb-10">
-        {dreamDataMemo &&
-          dreamDataMemo.map((dream) => (
-            <DreamCard key={dream._id} dream={dream} />
-          ))}
+      <section
+        id="cards"
+        className="grid grid-cols-1 gap-6 pb-10 md:grid-cols-2 lg:grid-cols-3 md:gap-8 lg:mx-20"
+      >
+        {dreamDataIsLoading
+          ? Array.from({ length: 10 }, (_, index) => (
+              <React.Fragment key={`skeleton_${index}`}>
+                <SkeletonCard />
+              </React.Fragment>
+            ))
+          : dreamDataMemo &&
+            dreamDataMemo.map((dream) => (
+              <DreamCard key={dream._id} dream={dream} />
+            ))}
 
         {dreamDataMemo && dreamDataMemo.length >= 10 && <div ref={ref} />}
       </section>
-    </div>
+    </main>
   );
 };
 

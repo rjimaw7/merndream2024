@@ -41,7 +41,17 @@ import {
   toggleCardOpen,
   setSelectedCardId,
 } from "@/redux/features/dreams/dreamSlice";
-import { useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useGptService } from "@/shared/service/gptService";
+import {
+  ApiRequestBody,
+  ChatCompletion,
+  IGpt,
+  Message,
+} from "@/shared/interfaces/IGpt";
+import { Label } from "../ui/label";
+import { PROMPT } from "@/shared/constants/dummyData";
+import TypeWriter from "./TypeWriter";
 
 const DreamSchema = z.object({
   title: z
@@ -74,6 +84,9 @@ interface Props {
 
 const DreamForm = ({ singleDreamDataMemo }: Props) => {
   // ALL STATE
+  const [isEdit, setIsEdit] = useState(false);
+  const [isBotTyping, setIsBotTyping] = useState(false);
+  const [message, setMessage] = useState("");
 
   // ALL HOOKS
   const dispatch = useDispatch();
@@ -90,9 +103,11 @@ const DreamForm = ({ singleDreamDataMemo }: Props) => {
   });
   const { CreateDreamMutation, DeleteDreamMutation, UpdateDreamMutation } =
     useDreamService();
+  const { SendMessageMutation } = useGptService();
   const { CreateDream } = CreateDreamMutation();
   const { UpdateDream } = UpdateDreamMutation();
   const { DeleteDream } = DeleteDreamMutation();
+  const { SendMessage } = SendMessageMutation();
 
   const onSubmit = (values: DreamType) => {
     const modifiedValues = {
@@ -111,8 +126,8 @@ const DreamForm = ({ singleDreamDataMemo }: Props) => {
           onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["dreams"] });
             queryClient.invalidateQueries({ queryKey: ["single_dream"] });
-            // CLOSE MODAL
             dispatch(toggleCardOpen(false));
+            form.reset();
           },
           onError: (err) => {
             console.log(err);
@@ -124,8 +139,8 @@ const DreamForm = ({ singleDreamDataMemo }: Props) => {
       CreateDream.mutate(modifiedValues, {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: ["dreams"] });
-          // CLOSE MODAL
           dispatch(toggleCardOpen(false));
+          form.reset();
         },
         onError: (err: any) => {
           console.log("Create Error", err?.response?.data?.[0]?.msg);
@@ -141,12 +156,61 @@ const DreamForm = ({ singleDreamDataMemo }: Props) => {
         // CLOSE MODAL
         dispatch(setSelectedCardId(""));
         dispatch(toggleCardOpen(false));
+        form.reset();
       },
       onError: (err) => {
         console.log(err);
       },
     });
   };
+
+  const processMessageToChatGPT = useCallback(
+    async (chatMessages: IGpt[]) => {
+      const apiMessages: Message[] = chatMessages.map((messageObject) => {
+        const role = messageObject.sender === "Chat GPT" ? "assistant" : "user";
+        return { role, content: messageObject.message };
+      });
+
+      const systemMessage: Message = {
+        role: "system",
+        content:
+          // CHANGE HERE THE WAY YOU WANT THE AI TO BEHAVE
+          PROMPT,
+      };
+
+      const apiRequestBody: ApiRequestBody = {
+        model: "gpt-3.5-turbo",
+        messages: [systemMessage, ...apiMessages], // Include systemMessage at the beginning
+      };
+
+      SendMessage.mutateAsync(apiRequestBody, {
+        onSuccess: async (data: ChatCompletion) => {
+          const responseText = data.choices[0].message.content;
+
+          console.log("Message Inside: ", responseText);
+
+          setMessage(responseText);
+        },
+      });
+    },
+    [SendMessage.mutateAsync]
+  );
+
+  const handleInterPretDream = useCallback(
+    async (message: string) => {
+      const newMessage: IGpt = {
+        message: message,
+        sender: "user",
+        direction: "outgoing",
+      };
+
+      // setIsBotTyping(true);
+
+      await processMessageToChatGPT([newMessage]);
+    },
+
+    [processMessageToChatGPT]
+  );
 
   useEffect(() => {
     if (singleDreamDataMemo) {
@@ -156,19 +220,26 @@ const DreamForm = ({ singleDreamDataMemo }: Props) => {
     }
   }, [singleDreamDataMemo]);
 
+  // console.log("Message Outside: ", message);
+  // console.log("Message Outside: ", );
+
   return (
     <Dialog
       open={cardOpen}
       onOpenChange={(open) => {
-        if (!open) {
+        if (!open && !isBotTyping) {
           form.reset();
           if (singleDreamDataMemo) {
             queryClient.removeQueries({ queryKey: ["single_dream"] });
             dispatch(setSelectedCardId(""));
+            setMessage("");
+            setIsEdit(false);
           }
         }
 
-        dispatch(toggleCardOpen(open));
+        if (!isBotTyping) {
+          dispatch(toggleCardOpen(open));
+        }
       }}
     >
       <Button
@@ -177,118 +248,314 @@ const DreamForm = ({ singleDreamDataMemo }: Props) => {
       >
         Get Started
       </Button>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>
-            {singleDreamDataMemo ? singleDreamDataMemo.title : "Add a Dream"}
-          </DialogTitle>
-        </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid w-full items-center gap-4">
-              <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Title</FormLabel>
-                    <FormControl>
-                      <Input
-                        id="title"
-                        placeholder="Title of your dream"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Date</FormLabel>
-                    <FormControl>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant={"outline"}
-                            className={cn(
-                              " justify-start text-left font-normal w-full",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {field.value ? (
-                              format(field.value, "PPP")
-                            ) : (
-                              <span>When was it?</span>
-                            )}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            id="date"
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            disabled={(date) =>
-                              date > new Date() || date < new Date("1900-01-01")
-                            }
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="dream"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Dream</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Describe your dream"
-                        className="resize-none"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            <DialogFooter className="sm:justify-start">
-              {singleDreamDataMemo ? (
-                <>
-                  <Button type="submit" variant="default">
-                    Update
-                  </Button>
-                  <Button
-                    type="submit"
-                    variant="destructive"
-                    onClick={() => onDeleteDream(singleDreamDataMemo._id)}
-                  >
-                    Delete
-                  </Button>
-                </>
-              ) : (
-                <Button type="submit" variant="default">
-                  {CreateDream.isPending && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+      {cardOpen && (
+        <>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>
+                <div className="flex items-center justify-between mt-2">
+                  <Label className="text-base md:text-lg font-bold">
+                    {singleDreamDataMemo
+                      ? singleDreamDataMemo.title
+                      : "Add a Dream"}
+                  </Label>
+                  {singleDreamDataMemo && !isEdit && (
+                    <Label className="text-xs md:text-sm text-muted-foreground">
+                      {format(
+                        new Date(singleDreamDataMemo.date),
+                        "MMM d, yyyy, h:mm:ss a"
+                      )}
+                    </Label>
                   )}
-                  Submit
-                </Button>
-              )}
-            </DialogFooter>
-          </form>
-        </Form>
-      </DialogContent>
+                </div>
+              </DialogTitle>
+            </DialogHeader>
+            {singleDreamDataMemo && (
+              <>
+                {isEdit ? (
+                  <Form {...form}>
+                    <form
+                      onSubmit={form.handleSubmit(onSubmit)}
+                      className="space-y-4"
+                    >
+                      <div className="grid w-full items-center gap-4">
+                        <FormField
+                          control={form.control}
+                          name="title"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Title</FormLabel>
+                              <FormControl>
+                                <Input
+                                  id="title"
+                                  placeholder="Title of your dream"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="date"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Date</FormLabel>
+                              <FormControl>
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      variant={"outline"}
+                                      className={cn(
+                                        " justify-start text-left font-normal w-full",
+                                        !field.value && "text-muted-foreground"
+                                      )}
+                                    >
+                                      <CalendarIcon className="mr-2 h-4 w-4" />
+                                      {field.value ? (
+                                        format(field.value, "PPP")
+                                      ) : (
+                                        <span>When was it?</span>
+                                      )}
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent
+                                    className="w-auto p-0"
+                                    align="start"
+                                  >
+                                    <Calendar
+                                      id="date"
+                                      mode="single"
+                                      selected={field.value}
+                                      onSelect={field.onChange}
+                                      disabled={(date) =>
+                                        date > new Date() ||
+                                        date < new Date("1900-01-01")
+                                      }
+                                      initialFocus
+                                    />
+                                  </PopoverContent>
+                                </Popover>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="dream"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Dream</FormLabel>
+                              <FormControl>
+                                <Textarea
+                                  placeholder="Describe your dream"
+                                  className="resize-none"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <DialogFooter>
+                        <div className="flex flex-col md:flex-row w-full gap-2">
+                          <Button type="submit" variant="default">
+                            {UpdateDream.isPending && (
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            )}
+                            Update
+                          </Button>
+                          <Button
+                            type="submit"
+                            variant="outline"
+                            onClick={() => setIsEdit(false)}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </DialogFooter>
+                    </form>
+                  </Form>
+                ) : (
+                  <div className="">
+                    {!message && (
+                      <Textarea
+                        readOnly
+                        className="resize-none h-[300px] font-semibold text-base italic"
+                        value={singleDreamDataMemo?.dream}
+                      />
+                    )}
+                    {message && (
+                      <TypeWriter
+                        message={message}
+                        setIsBotTyping={setIsBotTyping}
+                      />
+                    )}
+                  </div>
+                )}
+                <DialogFooter>
+                  <div className="flex flex-col md:flex-row w-full gap-2">
+                    {singleDreamDataMemo && !isEdit && (
+                      <div className="flex flex-col md:flex-row w-full gap-2">
+                        <Button
+                          variant="default"
+                          onClick={() => {
+                            if (message) {
+                              setMessage("");
+                            }
+
+                            handleInterPretDream(singleDreamDataMemo?.dream);
+                          }}
+                          disabled={isBotTyping || SendMessage.isPending}
+                        >
+                          {SendMessage.isPending && (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          )}
+                          Interpret
+                        </Button>
+                        <Button
+                          disabled={
+                            isBotTyping ||
+                            UpdateDream.isPending ||
+                            SendMessage.isPending
+                          }
+                          variant="default"
+                          onClick={() => {
+                            setIsEdit(true);
+                            setMessage("");
+                          }}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          type="submit"
+                          variant="destructive"
+                          onClick={() => onDeleteDream(singleDreamDataMemo._id)}
+                          disabled={
+                            isBotTyping ||
+                            DeleteDream.isPending ||
+                            SendMessage.isPending
+                          }
+                        >
+                          {DeleteDream.isPending && (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          )}
+                          Delete
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </DialogFooter>
+              </>
+            )}
+
+            {!singleDreamDataMemo && message === "" && (
+              <Form {...form}>
+                <form
+                  className="space-y-4"
+                  onSubmit={form.handleSubmit(onSubmit)}
+                >
+                  <div className="grid w-full items-center gap-4">
+                    <FormField
+                      control={form.control}
+                      name="title"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Title</FormLabel>
+                          <FormControl>
+                            <Input
+                              id="title"
+                              placeholder="Title of your dream"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="date"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Date</FormLabel>
+                          <FormControl>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant={"outline"}
+                                  className={cn(
+                                    " justify-start text-left font-normal w-full",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  <CalendarIcon className="mr-2 h-4 w-4" />
+                                  {field.value ? (
+                                    format(field.value, "PPP")
+                                  ) : (
+                                    <span>When was it?</span>
+                                  )}
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent
+                                className="w-auto p-0"
+                                align="start"
+                              >
+                                <Calendar
+                                  id="date"
+                                  mode="single"
+                                  selected={field.value}
+                                  onSelect={field.onChange}
+                                  disabled={(date) =>
+                                    date > new Date() ||
+                                    date < new Date("1900-01-01")
+                                  }
+                                  initialFocus
+                                />
+                              </PopoverContent>
+                            </Popover>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="dream"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Dream</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Describe your dream"
+                              className="resize-none"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <DialogFooter>
+                    <div className="flex flex-col md:flex-row w-full">
+                      <Button type="submit" variant="default">
+                        {CreateDream.isPending && (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        )}
+                        Submit
+                      </Button>
+                    </div>
+                  </DialogFooter>
+                </form>
+              </Form>
+            )}
+          </DialogContent>
+        </>
+      )}
     </Dialog>
   );
 };

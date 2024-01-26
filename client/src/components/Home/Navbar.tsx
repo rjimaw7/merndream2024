@@ -13,7 +13,8 @@ const Navbar = () => {
   const { searchQuery } = useSelector((state: RootState) => state.dreams);
 
   return (
-    <header className="flex justify-between items-center py-3 px-12 sticky top-0 z-50 backdrop-blur">
+    // <header className="flex justify-between items-center py-3 px-12 sticky top-0 z-50 backdrop-blur">
+    <header className="flex justify-between items-center py-4 md:py-3 md:px-12 sticky top-0 z-50 backdrop-blur">
       <div>
         {theme === "light" ? <CloudSun size={32} /> : <MoonStar size={32} />}
       </div>
