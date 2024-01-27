@@ -18,7 +18,10 @@ const DreamCard = ({ dream }: Props) => {
 
   return (
     <Card
-      className="w-[316px] md:w-[350px] p-8 cursor-pointer hover:scale-105 transform transition-transform
+      // className="w-[316px] md:w-[350px] p-8 cursor-pointer hover:scale-105 transform transition-transform
+      // shadow-xl shadow-red-700/15 dark:shadow-lg dark:shadow-red-500/40
+      // "
+      className="m-4 md:w-[350px] p-8 cursor-pointer hover:scale-105 transform transition-transform
       shadow-xl shadow-red-700/15 dark:shadow-lg dark:shadow-red-500/40
       "
       onClick={() => {

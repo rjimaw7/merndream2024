@@ -11,6 +11,7 @@ import { useDebounce } from "@uidotdev/usehooks";
 import { useInView } from "react-intersection-observer";
 import React from "react";
 import SkeletonCard from "@/components/Home/SkeletonCard";
+import { Toaster } from "@/components/ui/toaster";
 
 const Home = () => {
   // ALL HOOKS
@@ -51,46 +52,44 @@ const Home = () => {
   }, [inView, hasNextPage]);
 
   return (
-    <main className="container">
+    <main className="">
       <Navbar />
 
-      <section
-        id="hero"
-        className="mb-10 mt-16 text-center flex flex-col gap-8"
-      >
-        {/* <h1 className="text-8xl font-bold tracking-tighter text-center"> */}
-        <h1 className="text-6xl md:text-8xl font-bold tracking-tighter text-center">
-          Advent of <span className="text-red-600">Dreams</span>
-        </h1>
-        <p className="text-lg md:text-xl text-black font-semibold italic dark:text-white">
-          Share your dreams, let's unlock their profound meanings together.
-        </p>
-        <div className="flex justify-center gap-4 items-center">
-          {singleDreamIsFetching ? (
-            <p>Loading...</p>
-          ) : (
-            <DreamForm singleDreamDataMemo={singleDreamDataMemo} />
-          )}
+      <section id="hero" className="container">
+        <div className="mb-10 mt-16 text-center flex flex-col gap-8">
+          <h1 className="text-6xl md:text-8xl font-bold tracking-tighter text-center">
+            Advent of <span className="text-red-600">Dreams</span>
+          </h1>
+          <p className="text-lg md:text-xl text-black font-semibold italic dark:text-white">
+            Share your dreams, let's unlock their profound meanings together.
+          </p>
+          <div className="flex justify-center gap-4 items-center">
+            {singleDreamIsFetching ? (
+              <p>Loading...</p>
+            ) : (
+              <DreamForm singleDreamDataMemo={singleDreamDataMemo} />
+            )}
+          </div>
         </div>
       </section>
 
-      <section
-        id="cards"
-        className="grid grid-cols-1 gap-6 pb-10 md:grid-cols-2 lg:grid-cols-3 md:gap-8 lg:mx-20"
-      >
-        {dreamDataIsLoading
-          ? Array.from({ length: 10 }, (_, index) => (
-              <React.Fragment key={`skeleton_${index}`}>
-                <SkeletonCard />
-              </React.Fragment>
-            ))
-          : dreamDataMemo &&
-            dreamDataMemo.map((dream) => (
-              <DreamCard key={dream._id} dream={dream} />
-            ))}
+      <section id="cards" className="container">
+        <div className="grid grid-cols-1 gap-6 pb-10 md:grid-cols-2 lg:grid-cols-3 md:gap-8 lg:mx-20">
+          {dreamDataIsLoading
+            ? Array.from({ length: 10 }, (_, index) => (
+                <React.Fragment key={`skeleton_${index}`}>
+                  <SkeletonCard />
+                </React.Fragment>
+              ))
+            : dreamDataMemo &&
+              dreamDataMemo.map((dream) => (
+                <DreamCard key={dream._id} dream={dream} />
+              ))}
+        </div>
 
         {dreamDataMemo && dreamDataMemo.length >= 10 && <div ref={ref} />}
       </section>
+      <Toaster />
     </main>
   );
 };

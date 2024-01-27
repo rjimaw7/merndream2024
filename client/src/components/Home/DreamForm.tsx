@@ -52,6 +52,7 @@ import {
 import { Label } from "../ui/label";
 import { PROMPT } from "@/shared/constants/dummyData";
 import TypeWriter from "./TypeWriter";
+import { useToast } from "../ui/use-toast";
 
 const DreamSchema = z.object({
   title: z
@@ -90,6 +91,7 @@ const DreamForm = ({ singleDreamDataMemo }: Props) => {
 
   // ALL HOOKS
   const dispatch = useDispatch();
+  const { toast } = useToast();
   const { cardOpen } = useSelector((state: RootState) => state.dreams);
   const queryClient = useQueryClient();
   const { theme } = useTheme();
@@ -124,13 +126,20 @@ const DreamForm = ({ singleDreamDataMemo }: Props) => {
         },
         {
           onSuccess: () => {
+            toast({
+              title: "Your dream has been updated!",
+            });
+
             queryClient.invalidateQueries({ queryKey: ["dreams"] });
             queryClient.invalidateQueries({ queryKey: ["single_dream"] });
             dispatch(toggleCardOpen(false));
             form.reset();
           },
-          onError: (err) => {
-            console.log(err);
+          onError: (err: any) => {
+            toast({
+              title: "Something went wrong.",
+              description: `${err?.response?.data?.[0]?.msg}`,
+            });
           },
         }
       );
@@ -138,12 +147,21 @@ const DreamForm = ({ singleDreamDataMemo }: Props) => {
       // IF CREATE MODE
       CreateDream.mutate(modifiedValues, {
         onSuccess: () => {
+          toast({
+            title: "Your dream has been created!",
+          });
+
           queryClient.invalidateQueries({ queryKey: ["dreams"] });
           dispatch(toggleCardOpen(false));
           form.reset();
         },
         onError: (err: any) => {
           console.log("Create Error", err?.response?.data?.[0]?.msg);
+
+          toast({
+            title: "Something went wrong.",
+            description: `${err?.response?.data?.[0]?.msg}`,
+          });
         },
       });
     }
@@ -152,14 +170,20 @@ const DreamForm = ({ singleDreamDataMemo }: Props) => {
   const onDeleteDream = (id: string) => {
     DeleteDream.mutate(id, {
       onSuccess: () => {
+        toast({
+          title: "Your dream has been deleted!",
+        });
+
         queryClient.invalidateQueries({ queryKey: ["dreams"] });
         // CLOSE MODAL
         dispatch(setSelectedCardId(""));
         dispatch(toggleCardOpen(false));
         form.reset();
       },
-      onError: (err) => {
-        console.log(err);
+      onError: () => {
+        toast({
+          title: "Something went wrong.",
+        });
       },
     });
   };
@@ -187,8 +211,6 @@ const DreamForm = ({ singleDreamDataMemo }: Props) => {
         onSuccess: async (data: ChatCompletion) => {
           const responseText = data.choices[0].message.content;
 
-          console.log("Message Inside: ", responseText);
-
           setMessage(responseText);
         },
       });
@@ -204,8 +226,6 @@ const DreamForm = ({ singleDreamDataMemo }: Props) => {
         direction: "outgoing",
       };
 
-      // setIsBotTyping(true);
-
       await processMessageToChatGPT([newMessage]);
     },
 
@@ -219,9 +239,6 @@ const DreamForm = ({ singleDreamDataMemo }: Props) => {
       form.setValue("dream", singleDreamDataMemo.dream);
     }
   }, [singleDreamDataMemo]);
-
-  // console.log("Message Outside: ", message);
-  // console.log("Message Outside: ", );
 
   return (
     <Dialog
