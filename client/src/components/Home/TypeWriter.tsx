@@ -30,7 +30,7 @@ const TypeWriter = ({ message, setIsBotTyping }: Props) => {
       const maxScrollTop = scrollHeight - clientHeight;
       conversationRef.current.scrollTo({
         top: maxScrollTop,
-        behavior: "smooth",
+        behavior: "auto",
       });
     }
   }, [text]);
